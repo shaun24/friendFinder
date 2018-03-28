@@ -18,7 +18,7 @@ var friends = [
        ]
     },
     {
-       "name":"Yo' Mama",
+       "name":"Jim",
        "photo":"",
        "scores":[
           "4",
@@ -50,7 +50,7 @@ var friends = [
        ]
     },
     {
-       "name":"Yo' baby's Mama",
+       "name":"Jack",
        "photo":"",
        "scores":[
           "3",
@@ -66,7 +66,7 @@ var friends = [
        ]
     },
      {
-        "name":"Yo baby's Daddy",
+        "name":"Johnny",
         "photo":"",
         "scores":[
            "4",
@@ -82,7 +82,7 @@ var friends = [
         ]
      },
      {
-        "name":"Yo Mamma's Mama",
+        "name":"Jose",
         "photo":"",
         "scores":[
            "4",
