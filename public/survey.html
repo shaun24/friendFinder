@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Friend Finder</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/darkly/bootstrap.min.css" rel="stylesheet" integrity="sha384-S7YMK1xjUjSpEnF4P8hPUcgjXYLZKK3fQW1j5ObLSl787II9p8RO9XUGehRmKsxd" crossorigin="anonymous">
+   
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="/js/survey.js"></script>
+</head>
+<body>
+<div class="col-xs-12">
+    <div class="row">
+        
+        <p><a href="/">Home</a></p>
+        <h1>Friend Finder Survey Questions</h1>
+        <hr>
+        <form>
+       
+            <h2>About You</h2>
+            <div class="form-group">
+                <label for="userName">Your Name</label>
+                <input type="text" class="form-control" id="userName" placeholder="Your name here">
+            </div>
+            <div class="form-group">
+                <label for="imageLink">Your Photo</label>
+                <input type="url" class="form-control" id="imageLink" placeholder="http://flickr.com/image.png">
+            </div>
+            <hr>
+           
+            <h2>Personality Test</h2>
+            <div id="questions"></div>
+            <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+        </form>
+        <hr>
+        <p>
+            <span><a href="/api/friends">API Friend List</a> | </span>
+        </p>
+    
+        <div id="errorModal" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-lg">
+
+               
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Please include your name and a link to a photo of you.</h4>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div id="resultModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+
+            
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Your best match!</h4>
+                </div>
+                <div class="modal-body" id="modalContent"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+$(document).ready(function() {
+ 
+    var questions = [
+        'Your mind is always buzzing with unexplored ideas and plans',
+        'generally speaking, you rely more on your experience than your imagination',
+        'you find it easy to stay relaxed and focusedeven when there is some pressure',
+        'you rarely do something just out of sheer curiosity',
+        'People can rarely upset you',
+        'It is often difficult for you to relate to other peoples feelings',
+        'In a discussion, truth should be more important than peoples sensitivities',
+        'You rarely get carried away by fantasies and ideas',
+        'you think everyones should be respected regardless of basis',
+        'You have more energy after spending time with a group of people'
+    ];
+
+
+    var choices = [
+        '1 (Strongly Disagree)',
+        '2 (Disagree)',
+        '3 (Neutral)',
+        '4 (Agree)',
+        '5 (Strongly Agree)'
+    ];
+
+
+    var questionDiv = $('#questions');
+    i = 0;
+
+
+    questions.forEach(function (question) {
+        i++;
+
+        var item = $('<div class="question">');
+        var headline = $('<h4>').text('Question ' + i);
+        var questionText = $('<p>').text(question);
+        var dropDown = $('<div class="form-group">');
+        var select = $('<select class="form-control selector">');
+
+        choices.forEach(function(choice) {
+            var option = $('<option>').text(choice);
+            select.append(option);
+        });
+        select.attr('id', 'select' + i);
+
+        dropDown.append(select);
+        item.append(headline, questionText, dropDown);
+        var br = $('<br>');
+        questionDiv.append(item, br);
+    });
+
+
+    $('#submit').on('click', function(event) {
+
+
+        event.preventDefault();
+
+
+        var userName = $('#userName').val();
+        var imageLink = $('#imageLink').val();
+
+
+        if (userName.length > 0 && imageLink.length >0) {
+            var answers = [];
+
+
+            Object.keys($('.selector')).forEach(function(key) {
+                if (answers.length < questions.length) {
+
+                    answers.push($('.selector')[key].value.charAt(0));
+                }
+            });
+
+
+            var surveyData = {
+                name: userName,
+                photo: imageLink,
+                answers: answers
+            };
+
+
+            $.post('/api/friends', surveyData, function(data) {
+
+ 
+                if (data) {
+
+
+                    $('#modalContent').empty();
+                    $('#userName').val('');
+                    $('#imageLink').val('');
+
+                    data.forEach(function(profile) {
+                        var profileDiv = $('<div class="profile">');
+                        var name = profile.name;
+                        var photoURL = profile.photo;
+                
+                        var nameHeader = $('<h3>').text(name);
+                    
+                        var photo = $('<img>').attr('src', photoURL);
+                        profileDiv.append(nameHeader, photo);
+
+                
+                        $('#modalContent').append(profileDiv);
+                    });
+
+             
+                    if (data.length > 1) {
+             
+                        $('.modal-title').text('Your best matches!');
+                    } else {
+                 
+                        $('.modal-title').text('Your best match!');
+                    }
+
+               
+                    $('#resultModal').modal();
+                }
+            });
+      
+        } else {
+            $('#errorModal').modal();
+
+            setTimeout(function() {
+                $('#errorModal').modal('hide');
+            }, 2000);
+        }
+    });
+});
+
+</script>
+</html>
